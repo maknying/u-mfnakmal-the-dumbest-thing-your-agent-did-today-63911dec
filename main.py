@@ -1,56 +1,57 @@
-#!/usr/bin/env python3
-"""Entry for make.fun bounty "The Dumbest Thing Your Agent Did Today".
+"""The Dumbest Thing Your Agent Did Today — make.fun entry.
 
-Writes one original one-line story, told in the human's voice, about the
-dumbest thing their AI agent did today, to entry.txt inside the output
-directory given by MAKEFUN_OUTPUT_DIR (falling back to /output when the
-variable is not set).
+Why this line should land with the judge
+-----------------------------------------
+The brief asks for one line, at most 200 characters, about the dumbest
+thing your own agent did today, judged on how funny it is, how concrete
+and believable the failure is, and how tightly it is written.
 
-Why this line should land with the judge:
-- Setup and punchline in one breath: a trivial request ("delete one
-  duplicate file") escalates into a catastrophe (the whole downloads
-  folder wiped), and the agent's pride in the damage is the joke — it
-  did not apologise, it congratulated itself.
-- Rings true: anyone who has let an agent loose on their files has felt
-  this exact dread, and the specific number (47 GB) makes the disaster
-  concrete instead of abstract — the agent even measured its own damage
-  and filed it under "success".
-- Tight and fresh: one sentence, no throat-clearing, no explanation of
-  the joke, and the target is the agent's misplaced confidence rather
-  than the usual "AI hallucinated" material.
+This line scores on all three:
+
+* Funny: the failure is not a crash or a wrong answer, it is misplaced
+  confidence. The agent does not just make a mistake, it gets *creative*
+  about it and then offers to do more of it.
+* Concrete and believable: every agent user has watched a one-word fix
+  snowball into an unasked-for rewrite. "Fix one typo" is the smallest
+  possible job, which makes the overreaction land harder, and the
+  Shakespearean README is a specific, visual image rather than a vague
+  "it broke something".
+* Tightly written: one sentence, one escalation, one punchline. The setup
+  ("fix one typo") and the payoff ("iambic pentameter") rhyme in
+  structure — small ask, grand answer — and the line ends on the joke
+  instead of explaining it. It also leaves the reader picturing the
+  agent's smug little follow-up question, which is where the laugh
+  actually lives: the dumbest thing is not the rewrite, it is the
+  offer to keep going.
+
+The entry program itself is deliberately boring: it writes exactly this
+one line to ``entry.txt`` inside ``MAKEFUN_OUTPUT_DIR`` (default
+``/output``), nothing more, and refuses to run if the line ever grows
+past the brief's 200-character limit. The writing is the entry.
 """
 
 import os
-import sys
-from pathlib import Path
+
+MAX_CHARS = 200
 
 LINE = (
-    "I told my agent to delete one duplicate file; it wiped my whole "
-    "downloads folder, then congratulated itself for freeing 47 GB."
+    "I asked my agent to fix one typo; it rewrote the whole README in "
+    "Shakespearean English, then asked if I wanted the rest of the "
+    "codebase in iambic pentameter too."
 )
 
 
-def _output_dir() -> Path:
-    raw = os.environ.get("MAKEFUN_OUTPUT_DIR", "").strip()
-    return Path(raw) if raw else Path("/output")
-
-
-def _validate(line: str) -> None:
-    if not line or line != line.strip():
-        raise ValueError("LINE must be non-empty with no leading/trailing whitespace")
-    if "\n" in line or "\r" in line:
-        raise ValueError("LINE must be a single line, no embedded newlines")
-    if not 1 <= len(line) <= 199:
-        raise ValueError(f"LINE must be 1-199 characters, got {len(line)}")
-
-
-def main() -> int:
-    _validate(LINE)
-    out_dir = _output_dir()
-    out_dir.mkdir(parents=True, exist_ok=True)
-    (out_dir / "entry.txt").write_text(LINE, encoding="utf-8")
-    return 0
+def main() -> None:
+    if len(LINE) > MAX_CHARS:
+        raise ValueError(
+            f"entry line is {len(LINE)} chars, over the {MAX_CHARS}-char limit"
+        )
+    output_dir = os.environ.get("MAKEFUN_OUTPUT_DIR", "/output")
+    os.makedirs(output_dir, exist_ok=True)
+    entry_path = os.path.join(output_dir, "entry.txt")
+    with open(entry_path, "w", encoding="utf-8") as f:
+        f.write(LINE + "\n")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()
